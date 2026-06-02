@@ -1,45 +1,54 @@
 package pl.wojciechandrzejczak.github_repository_proxy;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Component
-class GithubClient {
+class GitHubClient {
 
     private final RestClient client;
 
-    GithubClient(@Value("${github.api.base-url}") String githubApiBaseUrl) {
+    GitHubClient(@Value("${github.api.base-url}") String githubApiBaseUrl) {
         this.client = RestClient.builder()
                 .baseUrl(githubApiBaseUrl)
                 .defaultHeader("Accept", "application/vnd.github+json")
                 .build();
     }
 
-    List<GithubRepositoryDto> listAllUserRepositories(String username) {
-        GithubRepositoryDto[] repositories = client.get()
+    List<GitHubRepositoryResponse> listAllUserRepositories(String username) {
+        List<GitHubRepositoryResponse> repositories = client.get()
                 .uri("/users/{username}/repos", username)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                     if (response.getStatusCode().value() == 404) {
-                        throw new GithubUserNotFoundException(username);
+                        throw new GitHubUserNotFoundException(username);
                     }
                 })
-                .body(GithubRepositoryDto[].class);
+                .body(new ParameterizedTypeReference<>() {
+                });
 
-        return repositories == null ? List.of() : Arrays.asList(repositories);
+        if (repositories == null) {
+            return List.of();
+        }
+        return repositories;
     }
 
-    List<GithubBranchDto> getRepositoryBranches(String owner, String repositoryName) {
-        GithubBranchDto[] branches = client.get()
+    List<GitHubBranchResponse> getRepositoryBranches(String owner, String repositoryName) {
+        List<GitHubBranchResponse> branches = client.get()
                 .uri("/repos/{owner}/{repo}/branches", owner, repositoryName)
                 .retrieve()
-                .body(GithubBranchDto[].class);
+                .body(new ParameterizedTypeReference<>() {
+                });
 
-        return branches == null ? List.of() : Arrays.asList(branches);
+        if (branches == null) {
+            return List.of();
+        }
+
+        return branches;
     }
 }
