@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler(GithubUserNotFoundException.class)
-    ResponseEntity<ErrorResponseDto> handleGithubUserNotFoundException(GithubUserNotFoundException exception) {
+    @ExceptionHandler(GitHubUserNotFoundException.class)
+    ResponseEntity<ErrorResponse> handleGithubUserNotFoundException(GitHubUserNotFoundException exception) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDto(
+                .body(new ErrorResponse(
                         HttpStatus.NOT_FOUND.value(),
                         exception.getMessage()
                 ));
