@@ -6,6 +6,6 @@ record GitHubRepositoryResponse(
         GitHubOwnerResponse owner
 ) {}
 record GitHubOwnerResponse(
-        String username
+        String login
 ){}
 
