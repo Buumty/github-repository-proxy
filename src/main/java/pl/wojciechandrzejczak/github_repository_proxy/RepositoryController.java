@@ -9,9 +9,9 @@ import java.util.List;
 @RestController
 class RepositoryController {
 
-    private final RepositoryService repositoryService;
+    private final GitHubService repositoryService;
 
-    RepositoryController(RepositoryService repositoryService) {
+    RepositoryController(GitHubService repositoryService) {
         this.repositoryService = repositoryService;
     }
 

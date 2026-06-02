@@ -1,7 +1,7 @@
 package pl.wojciechandrzejczak.github_repository_proxy;
 
-public class GithubUserNotFoundException extends RuntimeException{
-    GithubUserNotFoundException(String username) {
+public class GitHubUserNotFoundException extends RuntimeException{
+    GitHubUserNotFoundException(String username) {
         super("Github user not found: " + username);
     }
 }
