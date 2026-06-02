@@ -152,7 +152,7 @@ class GitHubRepositoryProxyApplicationTests {
 		JsonNode body = objectMapper.readTree(response.body());
 
 		assertThat(body.get("status").asInt()).isEqualTo(404);
-		assertThat(body.get("message").asString()).isEqualTo("Github user not found: unknown");
+		assertThat(body.get("message").asString()).isEqualTo("GitHub user not found: unknown");
 
 		wireMockServer.verify(1, getRequestedFor(urlEqualTo("/users/unknown/repos")));
 	}
