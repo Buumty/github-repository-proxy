@@ -16,7 +16,7 @@ class RepositoryController {
     }
 
     @GetMapping("/api/users/{username}/repositories")
-    List<RepositoryResponseDto> listUserRepositories(@PathVariable String username) {
+    List<RepositoryResponse> listUserRepositories(@PathVariable String username) {
         return repositoryService.listUserRepositories(username);
     }
 }
