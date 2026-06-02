@@ -1,6 +1,6 @@
 package pl.wojciechandrzejczak.github_repository_proxy;
 
-record ErrorResponseDto(
+record ErrorResponse(
         int status,
         String message
 ) {
