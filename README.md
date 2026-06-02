@@ -64,7 +64,7 @@ Example response:
 ```json
 {
   "status": 404,
-  "message": "Github user not found: unknown-user"
+  "message": "GitHub user not found: unknown-user"
 }
 ```
 
@@ -83,12 +83,6 @@ Run the application:
 ./gradlew bootRun
 ```
 
-On Windows:
-
-```bash
-gradlew.bat bootRun
-```
-
 The application starts on:
 
 ```text
@@ -101,12 +95,6 @@ Run tests:
 
 ```bash
 ./gradlew test
-```
-
-On Windows:
-
-```bash
-gradlew.bat test
 ```
 
 The tests are integration tests. WireMock is used to emulate the GitHub API.
