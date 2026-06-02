@@ -8,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -32,6 +34,7 @@ class GitHubRepositoryProxyApplicationTests {
 	private int port;
 
 	private final HttpClient httpClient = HttpClient.newHttpClient();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@DynamicPropertySource
 	static void configureProperties(DynamicPropertyRegistry registry) {
@@ -49,7 +52,8 @@ class GitHubRepositoryProxyApplicationTests {
 	}
 
 	@Test
-	void shouldReturnOnlyNonForkRepositoriesWithBranches() throws Exception {
+	void givenRepositoriesWithForks_whenListingUserRepositories_thenReturnOnlyNonForkRepositoriesWithBranches() throws Exception {
+		// given
 		wireMockServer.stubFor(get(urlEqualTo("/users/testuser/repos"))
 				.willReturn(okJson("""
                         [
@@ -93,18 +97,33 @@ class GitHubRepositoryProxyApplicationTests {
 				.GET()
 				.build();
 
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		// when
+		HttpResponse<String> response = httpClient.send(
+				request,
+				HttpResponse.BodyHandlers.ofString()
+		);
 
+		// then
 		assertThat(response.statusCode()).isEqualTo(200);
 
-		assertThat(response.body()).contains("\"repositoryName\":\"repo-a\"");
-		assertThat(response.body()).contains("\"ownerLogin\":\"testuser\"");
-		assertThat(response.body()).contains("\"name\":\"main\"");
-		assertThat(response.body()).contains("\"lastCommitSha\":\"abc123\"");
-		assertThat(response.body()).contains("\"name\":\"develop\"");
-		assertThat(response.body()).contains("\"lastCommitSha\":\"def456\"");
+		JsonNode body = objectMapper.readTree(response.body());
 
-		assertThat(response.body()).doesNotContain("\"repositoryName\":\"repo-b\"");
+		assertThat(body).hasSize(1);
+
+		JsonNode repository = body.get(0);
+		assertThat(repository.get("repositoryName").asString()).isEqualTo("repo-a");
+		assertThat(repository.get("ownerLogin").asString()).isEqualTo("testuser");
+
+		JsonNode branches = repository.get("branches");
+		assertThat(branches).hasSize(2);
+
+		JsonNode mainBranch = branches.get(0);
+		assertThat(mainBranch.get("name").asString()).isEqualTo("main");
+		assertThat(mainBranch.get("lastCommitSha").asString()).isEqualTo("abc123");
+
+		JsonNode developBranch = branches.get(1);
+		assertThat(developBranch.get("name").asString()).isEqualTo("develop");
+		assertThat(developBranch.get("lastCommitSha").asString()).isEqualTo("def456");
 
 		wireMockServer.verify(1, getRequestedFor(urlEqualTo("/users/testuser/repos")));
 		wireMockServer.verify(1, getRequestedFor(urlEqualTo("/repos/testuser/repo-a/branches")));
@@ -112,7 +131,8 @@ class GitHubRepositoryProxyApplicationTests {
 	}
 
 	@Test
-	void shouldReturn404WhenGithubUserDoesNotExist() throws Exception {
+	void givenNotExistingGithubUser_whenListingUserRepositories_thenReturn404WithErrorResponse() throws Exception {
+		// given
 		wireMockServer.stubFor(get(urlEqualTo("/users/unknown/repos"))
 				.willReturn(notFound()));
 
@@ -121,11 +141,18 @@ class GitHubRepositoryProxyApplicationTests {
 				.GET()
 				.build();
 
-		HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		// when
+		HttpResponse<String> response = httpClient.send(
+				request,
+				HttpResponse.BodyHandlers.ofString()
+		);
 
+		// then
 		assertThat(response.statusCode()).isEqualTo(404);
-		assertThat(response.body()).contains("\"status\":404");
-		assertThat(response.body()).contains("\"message\":\"Github user not found: unknown\"");
+		JsonNode body = objectMapper.readTree(response.body());
+
+		assertThat(body.get("status").asInt()).isEqualTo(404);
+		assertThat(body.get("message").asString()).isEqualTo("Github user not found: unknown");
 
 		wireMockServer.verify(1, getRequestedFor(urlEqualTo("/users/unknown/repos")));
 	}
