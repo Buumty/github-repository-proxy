@@ -19,7 +19,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class GithubRepositoryProxyApplicationTests {
+class GitHubRepositoryProxyApplicationTests {
 
 	private static final WireMockServer wireMockServer =
 			new WireMockServer(options().dynamicPort());
